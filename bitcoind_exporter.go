@@ -17,6 +17,10 @@ type bitcoindCollector struct {
 	difficulty      *prometheus.Desc
 }
 
+const (
+	namespace = "bitcoind"
+)
+
 var (
 	promlogConfig = &promlog.Config{}
 	logger        = promlog.New(promlogConfig)
@@ -32,10 +36,12 @@ func newBitcoindCollector(rpcUser string, rpcPassword string, rpcServer string) 
 			HTTPPostMode: true,
 			DisableTLS:   true,
 		},
-		blockCount: prometheus.NewDesc("bitcoind_block_count",
+		blockCount: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "block", "count"),
 			"Number of blocks in the longest blockchain.",
 			nil, nil),
-		difficulty: prometheus.NewDesc("bitcoind_difficulty",
+		difficulty: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "", "difficulty"),
 			"The proof-of-work difficulty as a multiple of the minimum difficulty.",
 			nil, nil),
 	}
@@ -99,7 +105,7 @@ func main() {
 		).OverrideDefaultFromEnvar("BITCOIND_RPC_PASSWORD").Required().String()
 	)
 
-	kingpin.Version(version.Print(exporter))
+	kingpin.Version(version.Print("bitcoind_exporter"))
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 
