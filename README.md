@@ -16,3 +16,4 @@ To run it:
 | ------ | ----------- | ------ |
 | bitcoind_block_count | Number of blocks in the longest blockchain. | |
 | bitcoind_difficulty  _| The proof-of-work difficulty as a multiple of the minimum difficulty. | |
+| bitcoind_connection_count | Number of connections to other nodes. | |

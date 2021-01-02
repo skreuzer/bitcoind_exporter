@@ -15,6 +15,7 @@ type bitcoindCollector struct {
 	rpcClientConfig *rpcclient.ConnConfig
 	blockCount      *prometheus.Desc
 	difficulty      *prometheus.Desc
+	connectionCount *prometheus.Desc
 }
 
 const (
@@ -44,12 +45,17 @@ func newBitcoindCollector(rpcUser string, rpcPassword string, rpcServer string) 
 			prometheus.BuildFQName(namespace, "", "difficulty"),
 			"The proof-of-work difficulty as a multiple of the minimum difficulty.",
 			nil, nil),
+		connectionCount: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "connection", "count"),
+			"The number of connections to other nodes.",
+			nil, nil),
 	}
 }
 
 func (collector *bitcoindCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- collector.blockCount
 	ch <- collector.difficulty
+	ch <- collector.connectionCount
 }
 
 func (collector *bitcoindCollector) Collect(ch chan<- prometheus.Metric) {
@@ -73,6 +79,13 @@ func (collector *bitcoindCollector) Collect(ch chan<- prometheus.Metric) {
 		level.Error(logger).Log("err", err)
 	} else {
 		ch <- prometheus.MustNewConstMetric(collector.difficulty, prometheus.CounterValue, getDifficulty)
+	}
+
+	getConnectionCount, err := client.GetConnectionCount()
+	if err != nil {
+		level.Error(logger).Log("err", err)
+	} else {
+		ch <- prometheus.MustNewConstMetric(collector.connectionCount, prometheus.GaugeValue, float64(getConnectionCount))
 	}
 
 }
