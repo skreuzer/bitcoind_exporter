@@ -14,6 +14,10 @@ To run it:
 
 | Metric | Description | Labels |
 | ------ | ----------- | ------ |
-| bitcoind_block_count | Number of blocks in the longest blockchain. | |
-| bitcoind_difficulty  _| The proof-of-work difficulty as a multiple of the minimum difficulty. | |
+| bitcoind_blockchain_blocks_validated_total | Current number of blocks processed in the server. | chain |
+| bitcoind_blockchain_headers_validated_total | Current number of headers processed in the server. | chain |
+| bitcoind_blockchain_difficulty | The proof-of-work difficulty as a multiple of the minimum difficulty. | chain |
 | bitcoind_connection_count | Number of connections to other nodes. | |
+
+## License
+This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICENSE) file for details.

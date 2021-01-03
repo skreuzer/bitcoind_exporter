@@ -14,6 +14,7 @@ import (
 type bitcoindCollector struct {
 	rpcClientConfig *rpcclient.ConnConfig
 	blockCount      *prometheus.Desc
+	headerCount     *prometheus.Desc
 	difficulty      *prometheus.Desc
 	connectionCount *prometheus.Desc
 }
@@ -38,13 +39,17 @@ func newBitcoindCollector(rpcUser string, rpcPassword string, rpcServer string) 
 			DisableTLS:   true,
 		},
 		blockCount: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "block", "count"),
-			"Number of blocks in the longest blockchain.",
-			nil, nil),
+			prometheus.BuildFQName(namespace, "blockchain", "blocks_validated_total"),
+			"Current number of blocks processed in the server",
+			[]string{"chain"}, nil),
+		headerCount: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "blockchain", "headers_validated_total"),
+			"Current number of headers processed in the server",
+			[]string{"chain"}, nil),
 		difficulty: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "", "difficulty"),
+			prometheus.BuildFQName(namespace, "blockchain", "difficulty"),
 			"The proof-of-work difficulty as a multiple of the minimum difficulty.",
-			nil, nil),
+			[]string{"chain"}, nil),
 		connectionCount: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "connection", "count"),
 			"The number of connections to other nodes.",
@@ -54,6 +59,7 @@ func newBitcoindCollector(rpcUser string, rpcPassword string, rpcServer string) 
 
 func (collector *bitcoindCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- collector.blockCount
+	ch <- collector.headerCount
 	ch <- collector.difficulty
 	ch <- collector.connectionCount
 }
@@ -67,18 +73,14 @@ func (collector *bitcoindCollector) Collect(ch chan<- prometheus.Metric) {
 
 	defer client.Shutdown()
 
-	getBlockCount, err := client.GetBlockCount()
+	getBlockChainInfo, err := client.GetBlockChainInfo()
 	if err != nil {
 		level.Error(logger).Log("err", err)
 	} else {
-		ch <- prometheus.MustNewConstMetric(collector.blockCount, prometheus.CounterValue, float64(getBlockCount))
-	}
-
-	getDifficulty, err := client.GetDifficulty()
-	if err != nil {
-		level.Error(logger).Log("err", err)
-	} else {
-		ch <- prometheus.MustNewConstMetric(collector.difficulty, prometheus.CounterValue, getDifficulty)
+		chain := getBlockChainInfo.Chain
+		ch <- prometheus.MustNewConstMetric(collector.blockCount, prometheus.CounterValue, float64(getBlockChainInfo.Blocks), chain)
+		ch <- prometheus.MustNewConstMetric(collector.headerCount, prometheus.CounterValue, float64(getBlockChainInfo.Headers), chain)
+		ch <- prometheus.MustNewConstMetric(collector.difficulty, prometheus.CounterValue, getBlockChainInfo.Difficulty, chain)
 	}
 
 	getConnectionCount, err := client.GetConnectionCount()
