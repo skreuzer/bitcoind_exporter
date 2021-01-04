@@ -18,6 +18,14 @@ To run it:
 | bitcoind_blockchain_headers_validated_total | Current number of headers processed in the server. | chain |
 | bitcoind_blockchain_difficulty | The proof-of-work difficulty as a multiple of the minimum difficulty. | chain |
 | bitcoind_connection_count | Number of connections to other nodes. | |
+| bitcoind_network_receive_bytes_total | Total bytes received over the network. | |
+| bitcoind_network_sent_bytes_total | Total bytes sent over the network. | |
+
+## Labels
+
+| Label | Description |
+| ----- | ----------- |
+| chain | Current network name as defined in BIP70 (main, test, regtest) |
 
 ## License
 This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICENSE) file for details.

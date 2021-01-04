@@ -17,6 +17,8 @@ type bitcoindCollector struct {
 	headerCount     *prometheus.Desc
 	difficulty      *prometheus.Desc
 	connectionCount *prometheus.Desc
+	netSentBytes    *prometheus.Desc
+	netRecvBytes    *prometheus.Desc
 }
 
 const (
@@ -50,6 +52,14 @@ func newBitcoindCollector(rpcUser string, rpcPassword string, rpcServer string) 
 			prometheus.BuildFQName(namespace, "blockchain", "difficulty"),
 			"The proof-of-work difficulty as a multiple of the minimum difficulty.",
 			[]string{"chain"}, nil),
+		netRecvBytes: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "network", "receive_bytes_total"),
+			"Total bytes received.",
+			nil, nil),
+		netSentBytes: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "network", "sent_bytes_total"),
+			"Total bytes sent.",
+			nil, nil),
 		connectionCount: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "connection", "count"),
 			"The number of connections to other nodes.",
@@ -62,6 +72,8 @@ func (collector *bitcoindCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- collector.headerCount
 	ch <- collector.difficulty
 	ch <- collector.connectionCount
+	ch <- collector.netSentBytes
+	ch <- collector.netRecvBytes
 }
 
 func (collector *bitcoindCollector) Collect(ch chan<- prometheus.Metric) {
@@ -81,6 +93,14 @@ func (collector *bitcoindCollector) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.MustNewConstMetric(collector.blockCount, prometheus.CounterValue, float64(getBlockChainInfo.Blocks), chain)
 		ch <- prometheus.MustNewConstMetric(collector.headerCount, prometheus.CounterValue, float64(getBlockChainInfo.Headers), chain)
 		ch <- prometheus.MustNewConstMetric(collector.difficulty, prometheus.CounterValue, getBlockChainInfo.Difficulty, chain)
+	}
+
+	getNetTotals, err := client.GetNetTotals()
+	if err != nil {
+		level.Error(logger).Log("err", err)
+	} else {
+		ch <- prometheus.MustNewConstMetric(collector.netRecvBytes, prometheus.CounterValue, float64(getNetTotals.TotalBytesRecv))
+		ch <- prometheus.MustNewConstMetric(collector.netSentBytes, prometheus.CounterValue, float64(getNetTotals.TotalBytesSent))
 	}
 
 	getConnectionCount, err := client.GetConnectionCount()
