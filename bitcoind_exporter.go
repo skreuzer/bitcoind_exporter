@@ -9,6 +9,7 @@ import (
 	"github.com/prometheus/common/version"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 	"net/http"
+	"os"
 )
 
 type bitcoindCollector struct {
@@ -159,5 +160,9 @@ func main() {
 	})
 
 	level.Info(logger).Log("msg", "Listening on", "address", *listenAddress)
-	http.ListenAndServe(*listenAddress, nil)
+	err := http.ListenAndServe(*listenAddress, nil)
+	if err != nil {
+		level.Error(logger).Log("msg", "Error running HTTP server", "err", err)
+		os.Exit(1)
+	}
 }
