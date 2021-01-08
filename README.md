@@ -17,7 +17,7 @@ To run it:
 | bitcoind_blockchain_blocks_validated_total | Current number of blocks processed in the server. | chain |
 | bitcoind_blockchain_headers_validated_total | Current number of headers processed in the server. | chain |
 | bitcoind_blockchain_difficulty | The proof-of-work difficulty as a multiple of the minimum difficulty. | chain |
-| bitcoind_connection_count | Number of connections to other nodes. | |
+| bitcoind_network_connections_count | Number of connections to other nodes. | |
 | bitcoind_network_receive_bytes_total | Total bytes received over the network. | |
 | bitcoind_network_sent_bytes_total | Total bytes sent over the network. | |
 
