@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/skreuzer/bitcoind_exporter/collector"
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/go-kit/kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
@@ -11,107 +12,6 @@ import (
 	"net/http"
 	"os"
 )
-
-type bitcoindCollector struct {
-	rpcClientConfig *rpcclient.ConnConfig
-	blockCount      *prometheus.Desc
-	headerCount     *prometheus.Desc
-	difficulty      *prometheus.Desc
-	connectionCount *prometheus.Desc
-	netSentBytes    *prometheus.Desc
-	netRecvBytes    *prometheus.Desc
-}
-
-const (
-	namespace = "bitcoind"
-)
-
-var (
-	promlogConfig = &promlog.Config{}
-	logger        = promlog.New(promlogConfig)
-)
-
-func newBitcoindCollector(rpcUser string, rpcPassword string, rpcServer string) *bitcoindCollector {
-
-	return &bitcoindCollector{
-		rpcClientConfig: &rpcclient.ConnConfig{
-			Host:         rpcServer,
-			User:         rpcUser,
-			Pass:         rpcPassword,
-			HTTPPostMode: true,
-			DisableTLS:   true,
-		},
-		blockCount: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "blockchain", "blocks_validated_total"),
-			"Current number of blocks processed in the server",
-			[]string{"chain"}, nil),
-		headerCount: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "blockchain", "headers_validated_total"),
-			"Current number of headers processed in the server",
-			[]string{"chain"}, nil),
-		difficulty: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "blockchain", "difficulty"),
-			"The proof-of-work difficulty as a multiple of the minimum difficulty.",
-			[]string{"chain"}, nil),
-		netRecvBytes: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "network", "receive_bytes_total"),
-			"Total bytes received.",
-			nil, nil),
-		netSentBytes: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "network", "sent_bytes_total"),
-			"Total bytes sent.",
-			nil, nil),
-		connectionCount: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "connection", "count"),
-			"The number of connections to other nodes.",
-			nil, nil),
-	}
-}
-
-func (collector *bitcoindCollector) Describe(ch chan<- *prometheus.Desc) {
-	ch <- collector.blockCount
-	ch <- collector.headerCount
-	ch <- collector.difficulty
-	ch <- collector.connectionCount
-	ch <- collector.netSentBytes
-	ch <- collector.netRecvBytes
-}
-
-func (collector *bitcoindCollector) Collect(ch chan<- prometheus.Metric) {
-
-	client, err := rpcclient.New(collector.rpcClientConfig, nil)
-	if err != nil {
-		level.Error(logger).Log("err", err)
-	}
-
-	defer client.Shutdown()
-
-	getBlockChainInfo, err := client.GetBlockChainInfo()
-	if err != nil {
-		level.Error(logger).Log("err", err)
-	} else {
-		chain := getBlockChainInfo.Chain
-		ch <- prometheus.MustNewConstMetric(collector.blockCount, prometheus.CounterValue, float64(getBlockChainInfo.Blocks), chain)
-		ch <- prometheus.MustNewConstMetric(collector.headerCount, prometheus.CounterValue, float64(getBlockChainInfo.Headers), chain)
-		ch <- prometheus.MustNewConstMetric(collector.difficulty, prometheus.CounterValue, getBlockChainInfo.Difficulty, chain)
-	}
-
-	getNetTotals, err := client.GetNetTotals()
-	if err != nil {
-		level.Error(logger).Log("err", err)
-	} else {
-		ch <- prometheus.MustNewConstMetric(collector.netRecvBytes, prometheus.CounterValue, float64(getNetTotals.TotalBytesRecv))
-		ch <- prometheus.MustNewConstMetric(collector.netSentBytes, prometheus.CounterValue, float64(getNetTotals.TotalBytesSent))
-	}
-
-	getConnectionCount, err := client.GetConnectionCount()
-	if err != nil {
-		level.Error(logger).Log("err", err)
-	} else {
-		ch <- prometheus.MustNewConstMetric(collector.connectionCount, prometheus.GaugeValue, float64(getConnectionCount))
-	}
-
-}
 
 func main() {
 	var (
@@ -145,24 +45,43 @@ func main() {
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 
-	exporter := newBitcoindCollector(*rpcUser, *rpcPassword, *rpcServer)
-	prometheus.MustRegister(exporter)
+	promlogConfig := &promlog.Config{}
+	logger := promlog.New(promlogConfig)
+
+	rpcClientConfig := &rpcclient.ConnConfig{
+		Host:         *rpcServer,
+		User:         *rpcUser,
+		Pass:         *rpcPassword,
+		HTTPPostMode: true,
+		DisableTLS:   true,
+	}
+
+	client, err := rpcclient.New(rpcClientConfig, nil)
+	if err != nil {
+		level.Error(logger).Log("err", err)
+	}
+
+	defer client.Shutdown()
+
+	prometheus.MustRegister(collector.NewBlockChainCollector(client, logger))
+	prometheus.MustRegister(collector.NewNetworkCollector(client, logger))
 
 	level.Info(logger).Log("msg", "Starting bitcoind_exporter", "version", version.Info())
 	level.Info(logger).Log("msg", "Build context", "build_context", version.BuildContext())
 
 	http.Handle(*metricsPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`<head><title>Node Exporter</title></head>
+		w.Write([]byte(`<head><title>Bitcoin Daemon Exporter</title></head>
                         <body><h1>Bitcoind Exporter</h1>
                         <p><a href="` + *metricsPath + `">Metrics</a></p>
                         </body></html>`))
 	})
 
 	level.Info(logger).Log("msg", "Listening on", "address", *listenAddress)
-	err := http.ListenAndServe(*listenAddress, nil)
+	err = http.ListenAndServe(*listenAddress, nil)
 	if err != nil {
 		level.Error(logger).Log("msg", "Error running HTTP server", "err", err)
 		os.Exit(1)
 	}
+
 }
