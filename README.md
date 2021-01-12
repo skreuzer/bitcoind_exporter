@@ -20,6 +20,7 @@ To run it:
 | bitcoind_network_connections_count | Number of connections to other nodes. | |
 | bitcoind_network_receive_bytes_total | Total bytes received over the network. | |
 | bitcoind_network_sent_bytes_total | Total bytes sent over the network. | |
+| bitcoind_mempool_transactions_count | Number of transcations in the mempool. | |
 
 ## Labels
 
