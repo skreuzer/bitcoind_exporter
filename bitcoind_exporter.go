@@ -65,6 +65,7 @@ func main() {
 
 	prometheus.MustRegister(collector.NewBlockChainCollector(client, logger))
 	prometheus.MustRegister(collector.NewNetworkCollector(client, logger))
+	prometheus.MustRegister(collector.NewMemPoolCollector(client, logger))
 
 	level.Info(logger).Log("msg", "Starting bitcoind_exporter", "version", version.Info())
 	level.Info(logger).Log("msg", "Build context", "build_context", version.BuildContext())
