@@ -8,11 +8,13 @@ import (
 )
 
 type blockChainCollector struct {
-	client      *rpcclient.Client
-	blockCount  *prometheus.Desc
-	headerCount *prometheus.Desc
-	difficulty  *prometheus.Desc
-	logger      log.Logger
+	client               *rpcclient.Client
+	blockCount           *prometheus.Desc
+	headerCount          *prometheus.Desc
+	difficulty           *prometheus.Desc
+	sizeOnDisk           *prometheus.Desc
+	initialBlockDownload *prometheus.Desc
+	logger               log.Logger
 }
 
 func NewBlockChainCollector(rpcClient *rpcclient.Client, logger log.Logger) *blockChainCollector {
@@ -31,6 +33,14 @@ func NewBlockChainCollector(rpcClient *rpcclient.Client, logger log.Logger) *blo
 		difficulty: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "blockchain", "difficulty"),
 			"The proof-of-work difficulty as a multiple of the minimum difficulty.",
+			[]string{"chain"}, nil),
+		sizeOnDisk: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "blockchain", "size_bytes"),
+			"The estimated size of the block and undo files on disk.",
+			[]string{"chain"}, nil),
+		initialBlockDownload: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "blockchain", "initial_download"),
+			"Estimate of whether this node is in initial block download mode.",
 			[]string{"chain"}, nil),
 	}
 }
@@ -51,5 +61,12 @@ func (c *blockChainCollector) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.MustNewConstMetric(c.blockCount, prometheus.CounterValue, float64(getBlockChainInfo.Blocks), chain)
 		ch <- prometheus.MustNewConstMetric(c.headerCount, prometheus.CounterValue, float64(getBlockChainInfo.Headers), chain)
 		ch <- prometheus.MustNewConstMetric(c.difficulty, prometheus.CounterValue, getBlockChainInfo.Difficulty, chain)
+		ch <- prometheus.MustNewConstMetric(c.sizeOnDisk, prometheus.CounterValue, float64(getBlockChainInfo.SizeOnDisk), chain)
+
+		var initialDownload float64
+		if getBlockChainInfo.InitialBlockDownload {
+			initialDownload = 1
+		}
+		ch <- prometheus.MustNewConstMetric(c.initialBlockDownload, prometheus.GaugeValue, initialDownload, chain)
 	}
 }

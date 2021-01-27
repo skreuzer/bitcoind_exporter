@@ -17,6 +17,8 @@ To run it:
 | bitcoind_blockchain_blocks_validated_total | Current number of blocks processed in the server. | chain |
 | bitcoind_blockchain_headers_validated_total | Current number of headers processed in the server. | chain |
 | bitcoind_blockchain_difficulty | The proof-of-work difficulty as a multiple of the minimum difficulty. | chain |
+| bitcoind_blockchain_size_bytes | Estimated size of the block and undo files on disk. | chain |
+| bitcoind_blockchain_initial_download | Estimate of whether the node is in initial block download mode. | chain |
 | bitcoind_network_connections_count | Number of connections to other nodes. | |
 | bitcoind_network_receive_bytes_total | Total bytes received over the network. | |
 | bitcoind_network_sent_bytes_total | Total bytes sent over the network. | |
