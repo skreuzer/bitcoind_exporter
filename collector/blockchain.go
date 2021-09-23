@@ -5,6 +5,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
+	"time"
 )
 
 type blockChainCollector struct {
@@ -15,13 +16,15 @@ type blockChainCollector struct {
 	sizeOnDisk           *prometheus.Desc
 	initialBlockDownload *prometheus.Desc
 	logger               log.Logger
+	collector            string
 }
 
 func NewBlockChainCollector(rpcClient *rpcclient.Client, logger log.Logger) *blockChainCollector {
 
 	return &blockChainCollector{
-		client: rpcClient,
-		logger: logger,
+		client:    rpcClient,
+		logger:    logger,
+		collector: "blockchain",
 		blockCount: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "blockchain", "blocks_validated_total"),
 			"Current number of blocks processed in the server",
@@ -53,20 +56,24 @@ func (collector *blockChainCollector) Describe(ch chan<- *prometheus.Desc) {
 
 func (c *blockChainCollector) Collect(ch chan<- prometheus.Metric) {
 
+	collectTime := time.Now()
 	getBlockChainInfo, err := c.client.GetBlockChainInfo()
 	if err != nil {
 		level.Error(c.logger).Log("err", err)
-	} else {
-		chain := getBlockChainInfo.Chain
-		ch <- prometheus.MustNewConstMetric(c.blockCount, prometheus.CounterValue, float64(getBlockChainInfo.Blocks), chain)
-		ch <- prometheus.MustNewConstMetric(c.headerCount, prometheus.CounterValue, float64(getBlockChainInfo.Headers), chain)
-		ch <- prometheus.MustNewConstMetric(c.difficulty, prometheus.CounterValue, getBlockChainInfo.Difficulty, chain)
-		ch <- prometheus.MustNewConstMetric(c.sizeOnDisk, prometheus.CounterValue, float64(getBlockChainInfo.SizeOnDisk), chain)
-
-		var initialDownload float64
-		if getBlockChainInfo.InitialBlockDownload {
-			initialDownload = 1
-		}
-		ch <- prometheus.MustNewConstMetric(c.initialBlockDownload, prometheus.GaugeValue, initialDownload, chain)
+		ch <- prometheus.MustNewConstMetric(collectError, prometheus.GaugeValue, 1, c.collector)
+		return
 	}
+	chain := getBlockChainInfo.Chain
+	ch <- prometheus.MustNewConstMetric(c.blockCount, prometheus.CounterValue, float64(getBlockChainInfo.Blocks), chain)
+	ch <- prometheus.MustNewConstMetric(c.headerCount, prometheus.CounterValue, float64(getBlockChainInfo.Headers), chain)
+	ch <- prometheus.MustNewConstMetric(c.difficulty, prometheus.CounterValue, getBlockChainInfo.Difficulty, chain)
+	ch <- prometheus.MustNewConstMetric(c.sizeOnDisk, prometheus.CounterValue, float64(getBlockChainInfo.SizeOnDisk), chain)
+
+	var initialDownload float64
+	if getBlockChainInfo.InitialBlockDownload {
+		initialDownload = 1
+	}
+	ch <- prometheus.MustNewConstMetric(c.initialBlockDownload, prometheus.GaugeValue, initialDownload, chain)
+	ch <- prometheus.MustNewConstMetric(collectError, prometheus.GaugeValue, 0, c.collector)
+	ch <- prometheus.MustNewConstMetric(collectDuration, prometheus.GaugeValue, time.Since(collectTime).Seconds(), c.collector)
 }
