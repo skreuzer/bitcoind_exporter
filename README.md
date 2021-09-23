@@ -23,12 +23,15 @@ To run it:
 | bitcoind_network_receive_bytes_total | Total bytes received over the network. | |
 | bitcoind_network_sent_bytes_total | Total bytes sent over the network. | |
 | bitcoind_mempool_transactions_count | Number of transcations in the mempool. | |
+| bitcoind_exporter_collect_error | Error occured during collection. | collector |
+| bitcoind_exporter_collector_duration_seconds | Collector time duration. | collector |
 
 ## Labels
 
 | Label | Description |
 | ----- | ----------- |
 | chain | Current network name as defined in BIP70 (main, test, regtest) |
+| collector | Internal name of the collector (mempool, network, blockchain) |
 
 ## License
 This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICENSE) file for details.
