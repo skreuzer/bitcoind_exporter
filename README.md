@@ -1,5 +1,8 @@
 # Bitcoin Daemon Exporter
 
+[![Docker Pulls](https://img.shields.io/docker/pulls/skreuzer/bitcoind_exporter.svg?maxAge=604800)](https://hub.docker.com/repository/docker/skreuzer/bitcoind_exporter)
+[![Go Report Card](https://goreportcard.com/badge/github.com/skreuzer/bitcoind_exporter)](https://goreportcard.com/report/github.com/skreuzer/bitcoind_exporter)
+
 Export statistics from bitcoind to [Prometheus](https://prometheus.io).
 
 Metrics are retrieved using calls to the JSON-RPC interface of the bitcoin
