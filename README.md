@@ -33,5 +33,22 @@ To run it:
 | chain | Current network name as defined in BIP70 (main, test, regtest) |
 | collector | Internal name of the collector (mempool, network, blockchain) |
 
+## Using Docker
+
+You can deploy this exporter using the skreuzer/bitcoind_exporter Docker image.
+
+For example:
+
+```bash
+docker pull skreuzer/bitcoind_exporter
+
+docker run -d \
+  -e BITCOIND_RPC_ADDRESS=172.16.0.1:8332 \
+  -e BITCOIND_RPC_PASSWORD=j9JkYnPIxwQgRzG3qAA \
+  -e BITCOIND_RPC_USER=bitcoin-rpc-user \
+  -p 9960:9960 \
+  skreuzer/bitcoind_exporter
+```
+
 ## License
 This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICENSE) file for details.
