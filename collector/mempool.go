@@ -23,7 +23,7 @@ func NewMemPoolCollector(rpcClient *rpcclient.Client, logger log.Logger) *memPoo
 		collector: "mempool",
 		txnCount: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "mempool", "transactions_count"),
-			"Number of transcations in the mempool",
+			"Number of transactions in the mempool",
 			nil, nil),
 	}
 }
