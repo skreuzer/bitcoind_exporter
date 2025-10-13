@@ -1,0 +1,32 @@
+# Git
+.git
+.gitignore
+
+# CI/CD
+.github
+
+# Documentation
+*.md
+LICENSE
+
+# Build artifacts
+bitcoind_exporter
+dist/
+*.tar.gz
+*.zip
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Test files
+*_test.go
+coverage.txt
+coverage.html
+
+# Development
+.env
+.env.local
