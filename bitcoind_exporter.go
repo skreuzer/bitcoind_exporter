@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/btcsuite/btcd/rpcclient"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/promlog"
 	"github.com/prometheus/common/version"
 	"github.com/skreuzer/bitcoind_exporter/collector"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (

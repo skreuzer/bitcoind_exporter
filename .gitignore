@@ -10,6 +10,32 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+*.prof
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Project binary
+bitcoind_exporter
+
+# Dependency directories
+vendor/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*~
+.DS_Store
+
+# Build artifacts
+dist/
+*.tar.gz
+*.zip
+
+# Environment files
+.env
+.env.local
+
+# Coverage reports
+coverage.txt
+coverage.html
