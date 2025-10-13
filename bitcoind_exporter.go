@@ -1,6 +1,9 @@
 package main
 
 import (
+	"net/http"
+	"os"
+
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/go-kit/kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
@@ -9,8 +12,6 @@ import (
 	"github.com/prometheus/common/version"
 	"github.com/skreuzer/bitcoind_exporter/collector"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
-	"net/http"
-	"os"
 )
 
 var (
@@ -84,6 +85,7 @@ func main() {
 	client, err := rpcclient.New(rpcClientConfig, nil)
 	if err != nil {
 		level.Error(logger).Log("err", err)
+		os.Exit(1)
 	}
 	defer client.Shutdown()
 
