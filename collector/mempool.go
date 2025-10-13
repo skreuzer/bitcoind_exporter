@@ -16,6 +16,8 @@ type memPoolCollector struct {
 	collector string
 }
 
+// NewMemPoolCollector creates a new collector for mempool metrics.
+// It collects the number of transactions currently in the mempool.
 func NewMemPoolCollector(rpcClient *rpcclient.Client, logger log.Logger) *memPoolCollector {
 
 	return &memPoolCollector{
@@ -37,7 +39,7 @@ func (c *memPoolCollector) Collect(ch chan<- prometheus.Metric) {
 	collectTime := time.Now()
 	getRawMemPool, err := c.client.GetRawMempool()
 	if err != nil {
-		level.Error(c.logger).Log("err", err)
+		_ = level.Error(c.logger).Log("err", err)
 		ch <- prometheus.MustNewConstMetric(collectError, prometheus.GaugeValue, 1, c.collector)
 		return
 	}

@@ -1,8 +1,11 @@
+// Package main implements a Prometheus exporter for Bitcoin Core (bitcoind).
+// It exposes blockchain, network, and mempool metrics via HTTP for Prometheus scraping.
 package main
 
 import (
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/btcsuite/btcd/rpcclient"
@@ -71,8 +74,8 @@ func main() {
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 
-	level.Info(logger).Log("msg", "Starting bitcoind_exporter", "version", version.Info())
-	level.Info(logger).Log("msg", "Build context", "build_context", version.BuildContext())
+	_ = level.Info(logger).Log("msg", "Starting bitcoind_exporter", "version", version.Info())
+	_ = level.Info(logger).Log("msg", "Build context", "build_context", version.BuildContext())
 
 	rpcClientConfig := &rpcclient.ConnConfig{
 		Host:         *rpcServer,
@@ -84,23 +87,29 @@ func main() {
 
 	client, err := rpcclient.New(rpcClientConfig, nil)
 	if err != nil {
-		level.Error(logger).Log("err", err)
+		_ = level.Error(logger).Log("err", err)
 		os.Exit(1)
 	}
-	defer client.Shutdown()
+	defer func() {
+		client.Shutdown()
+	}()
 
 	http.Handle(*metricsPath, metricsHandler(client))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`<head><title>Bitcoin Daemon Exporter</title></head>
-                        <body><h1>Bitcoind Exporter</h1>
-                        <p><a href="` + *metricsPath + `">Metrics</a></p>
-                        </body></html>`))
+		_, _ = w.Write([]byte(`<head><title>Bitcoin Daemon Exporter</title></head>
+	                       <body><h1>Bitcoind Exporter</h1>
+	                       <p><a href="` + *metricsPath + `">Metrics</a></p>
+	                       </body></html>`))
 	})
 
-	level.Info(logger).Log("msg", "Listening on", "address", *listenAddress)
-	err = http.ListenAndServe(*listenAddress, nil)
+	_ = level.Info(logger).Log("msg", "Listening on", "address", *listenAddress)
+	server := &http.Server{
+		Addr:              *listenAddress,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	err = server.ListenAndServe()
 	if err != nil {
-		level.Error(logger).Log("msg", "Error running HTTP server", "err", err)
+		_ = level.Error(logger).Log("msg", "Error running HTTP server", "err", err)
 		os.Exit(1)
 	}
 }

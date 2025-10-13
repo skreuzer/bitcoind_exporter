@@ -18,6 +18,8 @@ type networkCollector struct {
 	collector       string
 }
 
+// NewNetworkCollector creates a new collector for network metrics.
+// It collects connection count, bytes sent, and bytes received statistics.
 func NewNetworkCollector(rpcClient *rpcclient.Client, logger log.Logger) *networkCollector {
 
 	return &networkCollector{
@@ -50,7 +52,7 @@ func (c *networkCollector) Collect(ch chan<- prometheus.Metric) {
 	collectTime := time.Now()
 	getNetTotals, err := c.client.GetNetTotals()
 	if err != nil {
-		level.Error(c.logger).Log("err", err)
+		_ = level.Error(c.logger).Log("err", err)
 		ch <- prometheus.MustNewConstMetric(collectError, prometheus.GaugeValue, 1, c.collector)
 		return
 	}
@@ -59,7 +61,7 @@ func (c *networkCollector) Collect(ch chan<- prometheus.Metric) {
 
 	getConnectionCount, err := c.client.GetConnectionCount()
 	if err != nil {
-		level.Error(c.logger).Log("err", err)
+		_ = level.Error(c.logger).Log("err", err)
 		ch <- prometheus.MustNewConstMetric(collectError, prometheus.GaugeValue, 1, c.collector)
 		return
 	}

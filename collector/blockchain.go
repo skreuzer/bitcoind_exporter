@@ -1,3 +1,5 @@
+// Package collector implements Prometheus collectors for bitcoind metrics.
+// It provides collectors for blockchain, network, and mempool statistics.
 package collector
 
 import (
@@ -20,6 +22,8 @@ type blockChainCollector struct {
 	collector            string
 }
 
+// NewBlockChainCollector creates a new collector for blockchain metrics.
+// It collects block count, header count, difficulty, size on disk, and initial block download status.
 func NewBlockChainCollector(rpcClient *rpcclient.Client, logger log.Logger) *blockChainCollector {
 
 	return &blockChainCollector{
@@ -60,7 +64,7 @@ func (c *blockChainCollector) Collect(ch chan<- prometheus.Metric) {
 	collectTime := time.Now()
 	getBlockChainInfo, err := c.client.GetBlockChainInfo()
 	if err != nil {
-		level.Error(c.logger).Log("err", err)
+		_ = level.Error(c.logger).Log("err", err)
 		ch <- prometheus.MustNewConstMetric(collectError, prometheus.GaugeValue, 1, c.collector)
 		return
 	}

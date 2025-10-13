@@ -22,7 +22,6 @@ linters:
     - gocyclo       # Cyclomatic complexity
     - dupl          # Code clone detection
     - prealloc      # Find slice declarations that could be preallocated
-    - exportloopref # Check for pointers to enclosing loop variables
     - nolintlint    # Ill-formed or insufficient nolint directives
 
 linters-settings:
