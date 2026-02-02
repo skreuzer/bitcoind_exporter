@@ -45,11 +45,15 @@ func (c *networkCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (c *networkCollector) Collect(ch chan<- prometheus.Metric) {
-
 	collectTime := time.Now()
+
 	getNetTotals, err := c.client.GetNetTotals()
 	if err != nil {
-		level.Error(c.logger).Log("err", err)
+		level.Error(c.logger).Log(
+			"msg", "Failed to get network totals",
+			"err", err,
+			"method", "GetNetTotals",
+		)
 		ch <- prometheus.MustNewConstMetric(collectError, prometheus.GaugeValue, 1, c.collector)
 		return
 	}
@@ -58,7 +62,11 @@ func (c *networkCollector) Collect(ch chan<- prometheus.Metric) {
 
 	getConnectionCount, err := c.client.GetConnectionCount()
 	if err != nil {
-		level.Error(c.logger).Log("err", err)
+		level.Error(c.logger).Log(
+			"msg", "Failed to get connection count",
+			"err", err,
+			"method", "GetConnectionCount",
+		)
 		ch <- prometheus.MustNewConstMetric(collectError, prometheus.GaugeValue, 1, c.collector)
 		return
 	}

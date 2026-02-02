@@ -1,20 +1,24 @@
 package main
 
 import (
+	"context"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/btcsuite/btcd/rpcclient"
+	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/promlog"
 	"github.com/prometheus/common/version"
 	"github.com/skreuzer/bitcoind_exporter/collector"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
-	"net/http"
-	"os"
 )
 
 var (
-	logger = promlog.New(&promlog.Config{})
+	logger = level.NewFilter(log.NewLogfmtLogger(os.Stderr), level.AllowInfo())
 
 	listenAddress = kingpin.Flag(
 		"web.listen-address",
@@ -54,6 +58,8 @@ func metricsHandler(client *rpcclient.Client) http.HandlerFunc {
 		registry.MustRegister(collector.NewBlockChainCollector(client, logger))
 		registry.MustRegister(collector.NewNetworkCollector(client, logger))
 		registry.MustRegister(collector.NewMemPoolCollector(client, logger))
+		registry.MustRegister(collector.NewMiningCollector(client, logger))
+		registry.MustRegister(collector.NewUtxoCollector(client, logger))
 
 		gatherers := prometheus.Gatherers{registry}
 		if !*disableExporterMetrics {
@@ -83,10 +89,18 @@ func main() {
 
 	client, err := rpcclient.New(rpcClientConfig, nil)
 	if err != nil {
-		level.Error(logger).Log("err", err)
+		level.Error(logger).Log("err", err, "msg", "Failed to create RPC client")
+		os.Exit(1)
 	}
 	defer client.Shutdown()
 
+	// Setup HTTP server
+	server := &http.Server{
+		Addr:    *listenAddress,
+		Handler: nil,
+	}
+
+	// Setup routes
 	http.Handle(*metricsPath, metricsHandler(client))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<head><title>Bitcoin Daemon Exporter</title></head>
@@ -95,10 +109,22 @@ func main() {
                         </body></html>`))
 	})
 
+	// Handle graceful shutdown
+	go func() {
+		sigchan := make(chan os.Signal, 1)
+		signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
+		<-sigchan
+		level.Info(logger).Log("msg", "Shutting down server...")
+		if err := server.Shutdown(context.Background()); err != nil {
+			level.Error(logger).Log("msg", "Server shutdown error", "err", err)
+		}
+		client.Shutdown()
+		os.Exit(0)
+	}()
+
 	level.Info(logger).Log("msg", "Listening on", "address", *listenAddress)
-	err = http.ListenAndServe(*listenAddress, nil)
-	if err != nil {
-		level.Error(logger).Log("msg", "Error running HTTP server", "err", err)
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		level.Error(logger).Log("msg", "Server error", "err", err)
 		os.Exit(1)
 	}
 }

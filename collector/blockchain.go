@@ -1,11 +1,12 @@
 package collector
 
 import (
+	"time"
+
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
-	"time"
 )
 
 type blockChainCollector struct {
@@ -15,6 +16,8 @@ type blockChainCollector struct {
 	difficulty           *prometheus.Desc
 	sizeOnDisk           *prometheus.Desc
 	initialBlockDownload *prometheus.Desc
+	verificationProgress *prometheus.Desc
+	pruned               *prometheus.Desc
 	logger               log.Logger
 	collector            string
 }
@@ -45,6 +48,14 @@ func NewBlockChainCollector(rpcClient *rpcclient.Client, logger log.Logger) *blo
 			prometheus.BuildFQName(namespace, "blockchain", "initial_download"),
 			"Estimate of whether this node is in initial block download mode.",
 			[]string{"chain"}, nil),
+		verificationProgress: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "blockchain", "verification_progress"),
+			"Estimate of verification progress [0..1].",
+			[]string{"chain"}, nil),
+		pruned: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "blockchain", "pruned"),
+			"Indicates if the node is pruned.",
+			[]string{"chain"}, nil),
 	}
 }
 
@@ -52,14 +63,22 @@ func (collector *blockChainCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- collector.blockCount
 	ch <- collector.headerCount
 	ch <- collector.difficulty
+	ch <- collector.sizeOnDisk
+	ch <- collector.initialBlockDownload
+	ch <- collector.verificationProgress
+	ch <- collector.pruned
 }
 
 func (c *blockChainCollector) Collect(ch chan<- prometheus.Metric) {
-
 	collectTime := time.Now()
+
 	getBlockChainInfo, err := c.client.GetBlockChainInfo()
 	if err != nil {
-		level.Error(c.logger).Log("err", err)
+		level.Error(c.logger).Log(
+			"msg", "Failed to get blockchain info",
+			"err", err,
+			"method", "GetBlockChainInfo",
+		)
 		ch <- prometheus.MustNewConstMetric(collectError, prometheus.GaugeValue, 1, c.collector)
 		return
 	}
@@ -74,6 +93,14 @@ func (c *blockChainCollector) Collect(ch chan<- prometheus.Metric) {
 		initialDownload = 1
 	}
 	ch <- prometheus.MustNewConstMetric(c.initialBlockDownload, prometheus.GaugeValue, initialDownload, chain)
+	ch <- prometheus.MustNewConstMetric(c.verificationProgress, prometheus.GaugeValue, getBlockChainInfo.VerificationProgress, chain)
+
+	var pruned float64
+	if getBlockChainInfo.Pruned {
+		pruned = 1
+	}
+	ch <- prometheus.MustNewConstMetric(c.pruned, prometheus.GaugeValue, pruned, chain)
+
 	ch <- prometheus.MustNewConstMetric(collectError, prometheus.GaugeValue, 0, c.collector)
 	ch <- prometheus.MustNewConstMetric(collectDuration, prometheus.GaugeValue, time.Since(collectTime).Seconds(), c.collector)
 }
