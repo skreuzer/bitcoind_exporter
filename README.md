@@ -124,5 +124,48 @@ docker run -d \
   skreuzer/bitcoind_exporter
 ```
 
+## TLS Configuration
+
+By default, the exporter connects to bitcoind without TLS. To enable TLS:
+
+```bash
+./bitcoind_exporter --bitcoind.rpc-tls --bitcoind.rpc-user=user --bitcoind.rpc-password=pass
+```
+
+For self-signed certificates, provide the CA certificate:
+
+```bash
+./bitcoind_exporter --bitcoind.rpc-tls --bitcoind.rpc-ca-cert=/path/to/ca.crt
+```
+
+Or via environment variables:
+
+```bash
+export BITCOIND_RPC_TLS=true
+export BITCOIND_RPC_CA_CERT=/path/to/ca.crt
+./bitcoind_exporter --bitcoind.rpc-user=user --bitcoind.rpc-password=pass
+```
+
+### Extracting Certificate from Server
+
+To extract the certificate from a server with a self-signed cert:
+
+```bash
+openssl s_client -connect localhost:8332 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM > server.crt
+```
+
+Then use it with:
+
+```bash
+./bitcoind_exporter --bitcoind.rpc-tls --bitcoind.rpc-ca-cert=server.crt
+```
+
+### TLS Flags
+
+| Flag | Environment Variable | Description |
+| ---- | -------------------- | ----------- |
+| `--bitcoind.rpc-tls` | `BITCOIND_RPC_TLS` | Enable TLS for RPC connections |
+| `--bitcoind.rpc-ca-cert` | `BITCOIND_RPC_CA_CERT` | Path to CA certificate file for self-signed certs |
+
 ## License
 This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICENSE) file for details.

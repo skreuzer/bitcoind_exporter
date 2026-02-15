@@ -45,6 +45,16 @@ var (
 		"Password for JSON-RPC connections",
 	).OverrideDefaultFromEnvar("BITCOIND_RPC_PASSWORD").Required().String()
 
+	rpcTls = kingpin.Flag(
+		"bitcoind.rpc-tls",
+		"Enable TLS for RPC connections",
+	).Default("false").Bool()
+
+	rpcCaCert = kingpin.Flag(
+		"bitcoind.rpc-ca-cert",
+		"Path to CA certificate file for TLS connections (for self-signed certs)",
+	).OverrideDefaultFromEnvar("BITCOIND_RPC_CA_CERT").String()
+
 	disableExporterMetrics = kingpin.Flag(
 		"web.disable-exporter-metrics",
 		"Exclude metrics about the exporter (promhttp_*, process_*, go_*)",
@@ -114,7 +124,19 @@ func main() {
 		User:         *rpcUser,
 		Pass:         *rpcPassword,
 		HTTPPostMode: true,
-		DisableTLS:   true,
+		DisableTLS:   !*rpcTls,
+	}
+
+	if *rpcTls {
+		if *rpcCaCert != "" {
+			certPEM, err := os.ReadFile(*rpcCaCert)
+			if err != nil {
+				level.Error(logger).Log("err", err, "msg", "Failed to read CA certificate file")
+				os.Exit(1)
+			}
+			rpcClientConfig.Certificates = certPEM
+			level.Info(logger).Log("msg", "Loaded CA certificate", "path", *rpcCaCert)
+		}
 	}
 
 	client, err := rpcclient.New(rpcClientConfig, nil)
