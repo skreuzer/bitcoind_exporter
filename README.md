@@ -30,7 +30,7 @@ To run it:
 | bitcoind_mempool_transactions_count | Number of transactions in the mempool. | |
 | bitcoind_mempool_size_bytes | Total size of transactions in the mempool in bytes. | |
 | bitcoind_mempool_usage | Memory usage of the mempool in bytes. | |
-| bitcoind_mempool_usage_percent | Percentage of mempool usage relative to max mempool size. | |
+| bitcoind_mempool_usage_percent | Percentage of mempool usage relative to max mempool size. Returns 0 if no max mempool limit is configured. | |
 | bitcoind_mempool_min_fee | Minimum fee rate in the mempool in BTC/KB. | |
 | bitcoind_mining_network_hash_ps | Estimated network hashes per second. | |
 | bitcoind_mining_current_block_size | Size of the current block. | |

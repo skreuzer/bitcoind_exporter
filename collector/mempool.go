@@ -93,7 +93,11 @@ func (c *memPoolCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(c.txnCount, prometheus.GaugeValue, float64(getMempoolInfo.Size))
 	ch <- prometheus.MustNewConstMetric(c.sizeBytes, prometheus.GaugeValue, float64(getMempoolInfo.Bytes))
 	ch <- prometheus.MustNewConstMetric(c.usage, prometheus.GaugeValue, float64(getMempoolInfo.Usage))
-	ch <- prometheus.MustNewConstMetric(c.usagePercent, prometheus.GaugeValue, float64(getMempoolInfo.Usage)/float64(getMempoolInfo.MaxMempool)*100)
+	if getMempoolInfo.MaxMempool > 0 {
+		ch <- prometheus.MustNewConstMetric(c.usagePercent, prometheus.GaugeValue, float64(getMempoolInfo.Usage)/float64(getMempoolInfo.MaxMempool)*100)
+	} else {
+		ch <- prometheus.MustNewConstMetric(c.usagePercent, prometheus.GaugeValue, 0)
+	}
 	ch <- prometheus.MustNewConstMetric(c.minFee, prometheus.GaugeValue, getMempoolInfo.MempoolMinFee)
 
 	ch <- prometheus.MustNewConstMetric(collectError, prometheus.GaugeValue, 0, c.collector)
