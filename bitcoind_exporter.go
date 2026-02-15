@@ -60,6 +60,7 @@ func metricsHandler(client *rpcclient.Client) http.HandlerFunc {
 		registry.MustRegister(collector.NewMemPoolCollector(client, logger))
 		registry.MustRegister(collector.NewMiningCollector(client, logger))
 		registry.MustRegister(collector.NewUtxoCollector(client, logger))
+		registry.MustRegister(collector.NewMemoryCollector(client, logger))
 
 		gatherers := prometheus.Gatherers{registry}
 		if !*disableExporterMetrics {

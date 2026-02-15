@@ -41,6 +41,12 @@ To run it:
 | bitcoind_utxo_total_amount_satoshis | Total amount of Bitcoin in all UTXOs (in satoshis). | |
 | bitcoind_utxo_disk_size_bytes | Disk size of the UTXO set in bytes. | |
 | bitcoind_utxo_height | Blockchain height when the UTXO set was generated. | |
+| bitcoind_memory_total_used_bytes | Total memory used in bytes. | |
+| bitcoind_memory_locked_bytes | Locked memory in bytes. | |
+| bitcoind_memory_used_bytes | Memory used in bytes. | category |
+| bitcoind_memory_used_block_tree_bytes | Memory used by block tree in bytes. | |
+| bitcoind_memory_used_tx_index_bytes | Memory used by transaction index in bytes. | |
+| bitcoind_memory_used_slab_bytes | Memory used by slab allocator in bytes. | |
 | bitcoind_exporter_collect_error | Error occured during collection. | collector |
 | bitcoind_exporter_collector_duration_seconds | Collector time duration. | collector |
 
@@ -49,7 +55,7 @@ To run it:
 | Label | Description |
 | ----- | ----------- |
 | chain | Current network name as defined in BIP70 (main, test, regtest) |
-| collector | Internal name of the collector (mempool, network, blockchain, mining, utxo) |
+| collector | Internal name of the collector (mempool, network, blockchain, mining, utxo, memory) |
 
 ## Using Docker
 
