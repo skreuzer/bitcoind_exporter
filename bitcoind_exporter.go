@@ -49,6 +49,56 @@ var (
 		"web.disable-exporter-metrics",
 		"Exclude metrics about the exporter (promhttp_*, process_*, go_*)",
 	).Default("false").Bool()
+
+	collectorBlockchain = kingpin.Flag(
+		"collector.blockchain",
+		"Enable the blockchain collector",
+	).Default("true").Bool()
+
+	collectorNetwork = kingpin.Flag(
+		"collector.network",
+		"Enable the network collector",
+	).Default("true").Bool()
+
+	collectorMempool = kingpin.Flag(
+		"collector.mempool",
+		"Enable the mempool collector",
+	).Default("true").Bool()
+
+	collectorMining = kingpin.Flag(
+		"collector.mining",
+		"Enable the mining collector",
+	).Default("true").Bool()
+
+	collectorUtxo = kingpin.Flag(
+		"collector.utxo",
+		"Enable the UTXO collector (warning: expensive operation)",
+	).Default("true").Bool()
+
+	collectorMemory = kingpin.Flag(
+		"collector.memory",
+		"Enable the memory collector",
+	).Default("true").Bool()
+
+	collectorPeer = kingpin.Flag(
+		"collector.peer",
+		"Enable the peer collector",
+	).Default("true").Bool()
+
+	collectorRpc = kingpin.Flag(
+		"collector.rpc",
+		"Enable the RPC collector",
+	).Default("true").Bool()
+
+	collectorVersion = kingpin.Flag(
+		"collector.version",
+		"Enable the version collector",
+	).Default("true").Bool()
+
+	collectorUptime = kingpin.Flag(
+		"collector.uptime",
+		"Enable the uptime collector",
+	).Default("true").Bool()
 )
 
 func main() {
@@ -75,16 +125,37 @@ func main() {
 	defer client.Shutdown()
 
 	registry := prometheus.NewRegistry()
-	registry.MustRegister(collector.NewBlockChainCollector(client, logger))
-	registry.MustRegister(collector.NewNetworkCollector(client, logger))
-	registry.MustRegister(collector.NewMemPoolCollector(client, logger))
-	registry.MustRegister(collector.NewMiningCollector(client, logger))
-	registry.MustRegister(collector.NewUtxoCollector(client, logger))
-	registry.MustRegister(collector.NewMemoryCollector(client, logger))
-	registry.MustRegister(collector.NewPeerCollector(client, logger))
-	registry.MustRegister(collector.NewRpcCollector(client, logger))
-	registry.MustRegister(collector.NewVersionCollector(client, logger))
-	registry.MustRegister(collector.NewUptimeCollector(client, logger))
+
+	if *collectorBlockchain {
+		registry.MustRegister(collector.NewBlockChainCollector(client, logger))
+	}
+	if *collectorNetwork {
+		registry.MustRegister(collector.NewNetworkCollector(client, logger))
+	}
+	if *collectorMempool {
+		registry.MustRegister(collector.NewMemPoolCollector(client, logger))
+	}
+	if *collectorMining {
+		registry.MustRegister(collector.NewMiningCollector(client, logger))
+	}
+	if *collectorUtxo {
+		registry.MustRegister(collector.NewUtxoCollector(client, logger))
+	}
+	if *collectorMemory {
+		registry.MustRegister(collector.NewMemoryCollector(client, logger))
+	}
+	if *collectorPeer {
+		registry.MustRegister(collector.NewPeerCollector(client, logger))
+	}
+	if *collectorRpc {
+		registry.MustRegister(collector.NewRpcCollector(client, logger))
+	}
+	if *collectorVersion {
+		registry.MustRegister(collector.NewVersionCollector(client, logger))
+	}
+	if *collectorUptime {
+		registry.MustRegister(collector.NewUptimeCollector(client, logger))
+	}
 
 	gatherers := prometheus.Gatherers{registry}
 	if !*disableExporterMetrics {

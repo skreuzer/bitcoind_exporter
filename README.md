@@ -13,6 +13,35 @@ To run it:
     go build
     ./bitcoind_exporter [flags]
 
+## Collectors
+
+All collectors are enabled by default. You can disable individual collectors using flags:
+
+```bash
+# Disable the UTXO collector (expensive operation)
+./bitcoind_exporter --no-collector.utxo
+
+# Disable multiple collectors
+./bitcoind_exporter --no-collector.utxo --no-collector.rpc --no-collector.mining
+```
+
+### Available Collectors
+
+| Collector | Flag | Description |
+| --------- | ---- | ----------- |
+| blockchain | `--collector.blockchain` | Blockchain info (blocks, headers, difficulty) |
+| network | `--collector.network` | Network connections and traffic |
+| mempool | `--collector.mempool` | Mempool size and transactions |
+| mining | `--collector.mining` | Mining info and hash rate |
+| utxo | `--collector.utxo` | UTXO set info (warning: expensive operation) |
+| memory | `--collector.memory` | Memory usage |
+| peer | `--collector.peer` | Connected peer statistics |
+| rpc | `--collector.rpc` | RPC call statistics |
+| version | `--collector.version` | Bitcoin Core version info |
+| uptime | `--collector.uptime` | Server uptime |
+
+**Note:** The UTXO collector calls `gettxoutsetinfo` which can take several minutes to complete on a full node. Consider disabling it with `--no-collector.utxo` if scrape timeouts are an issue.
+
 ## Exported Metrics
 
 | Metric | Description | Labels |
