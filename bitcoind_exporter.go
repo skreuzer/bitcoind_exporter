@@ -83,6 +83,8 @@ func main() {
 	registry.MustRegister(collector.NewMemoryCollector(client, logger))
 	registry.MustRegister(collector.NewPeerCollector(client, logger))
 	registry.MustRegister(collector.NewRpcCollector(client, logger))
+	registry.MustRegister(collector.NewVersionCollector(client, logger))
+	registry.MustRegister(collector.NewUptimeCollector(client, logger))
 
 	gatherers := prometheus.Gatherers{registry}
 	if !*disableExporterMetrics {

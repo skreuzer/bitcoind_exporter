@@ -59,6 +59,8 @@ To run it:
 | bitcoind_rpc_active_calls | Number of active RPC calls currently being processed. | |
 | bitcoind_rpc_calls_total | Total number of RPC calls made. | |
 | bitcoind_rpc_calls_total | Total number of RPC calls by command. | command |
+| bitcoind_version_info | Bitcoin Core version information (always 1). | version, subversion, protocol_version |
+| bitcoind_uptime_seconds | The number of seconds that the Bitcoin server has been running. | |
 | bitcoind_exporter_collect_error | Error occured during collection. | collector |
 | bitcoind_exporter_collector_duration_seconds | Collector time duration. | collector |
 
@@ -67,11 +69,14 @@ To run it:
 | Label | Description |
 | ----- | ----------- |
 | chain | Current network name as defined in BIP70 (main, test, regtest) |
-| collector | Internal name of the collector (mempool, network, blockchain, mining, utxo, memory, peer, rpc) |
+| collector | Internal name of the collector (mempool, network, blockchain, mining, utxo, memory, peer, rpc, version, uptime) |
 | connection_type | Type of peer connection (inbound, outbound, unknown) |
 | network | Network protocol of peer (ipv4, ipv6, onion, unknown) |
 | sync_status | Sync status of peer (synced, not_synced) |
 | command | RPC command name |
+| version | Bitcoin Core version number (e.g., 260000) |
+| subversion | Bitcoin Core user agent string (e.g., /Satoshi:26.0/) |
+| protocol_version | Bitcoin protocol version (e.g., 70016) |
 
 ## Using Docker
 
