@@ -47,6 +47,15 @@ To run it:
 | bitcoind_memory_used_block_tree_bytes | Memory used by block tree in bytes. | |
 | bitcoind_memory_used_tx_index_bytes | Memory used by transaction index in bytes. | |
 | bitcoind_memory_used_slab_bytes | Memory used by slab allocator in bytes. | |
+| bitcoind_peer_count | Total number of connected peers. | |
+| bitcoind_peer_count_by_connection | Number of peers by connection type. | connection_type |
+| bitcoind_peer_count_by_network | Number of peers by network type. | network |
+| bitcoind_peer_count_by_sync_status | Number of peers by sync status. | sync_status |
+| bitcoind_peer_at_latest_block | Number of peers at the latest block height. | |
+| bitcoind_peer_average_ping_seconds | Average ping time across all peers in seconds. | |
+| bitcoind_peer_average_ping_by_connection_seconds | Average ping time by connection type in seconds. | connection_type |
+| bitcoind_peer_min_ping_seconds | Minimum ping time across all peers in seconds. | |
+| bitcoind_peer_max_ping_seconds | Maximum ping time across all peers in seconds. | |
 | bitcoind_exporter_collect_error | Error occured during collection. | collector |
 | bitcoind_exporter_collector_duration_seconds | Collector time duration. | collector |
 
@@ -55,7 +64,10 @@ To run it:
 | Label | Description |
 | ----- | ----------- |
 | chain | Current network name as defined in BIP70 (main, test, regtest) |
-| collector | Internal name of the collector (mempool, network, blockchain, mining, utxo, memory) |
+| collector | Internal name of the collector (mempool, network, blockchain, mining, utxo, memory, peer) |
+| connection_type | Type of peer connection (inbound, outbound, unknown) |
+| network | Network protocol of peer (ipv4, ipv6, onion, unknown) |
+| sync_status | Sync status of peer (synced, not_synced) |
 
 ## Using Docker
 
