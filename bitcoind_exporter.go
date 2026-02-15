@@ -51,29 +51,6 @@ var (
 	).Default("false").Bool()
 )
 
-func metricsHandler(client *rpcclient.Client) http.HandlerFunc {
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		registry := prometheus.NewRegistry()
-		registry.MustRegister(collector.NewBlockChainCollector(client, logger))
-		registry.MustRegister(collector.NewNetworkCollector(client, logger))
-		registry.MustRegister(collector.NewMemPoolCollector(client, logger))
-		registry.MustRegister(collector.NewMiningCollector(client, logger))
-		registry.MustRegister(collector.NewUtxoCollector(client, logger))
-		registry.MustRegister(collector.NewMemoryCollector(client, logger))
-		registry.MustRegister(collector.NewPeerCollector(client, logger))
-		registry.MustRegister(collector.NewRpcCollector(client, logger))
-
-		gatherers := prometheus.Gatherers{registry}
-		if !*disableExporterMetrics {
-			gatherers = append(gatherers, prometheus.DefaultGatherer)
-		}
-
-		h := promhttp.HandlerFor(gatherers, promhttp.HandlerOpts{})
-		h.ServeHTTP(w, r)
-	}
-}
-
 func main() {
 	kingpin.Version(version.Print("bitcoind_exporter"))
 	kingpin.HelpFlag.Short('h')
@@ -97,6 +74,21 @@ func main() {
 	}
 	defer client.Shutdown()
 
+	registry := prometheus.NewRegistry()
+	registry.MustRegister(collector.NewBlockChainCollector(client, logger))
+	registry.MustRegister(collector.NewNetworkCollector(client, logger))
+	registry.MustRegister(collector.NewMemPoolCollector(client, logger))
+	registry.MustRegister(collector.NewMiningCollector(client, logger))
+	registry.MustRegister(collector.NewUtxoCollector(client, logger))
+	registry.MustRegister(collector.NewMemoryCollector(client, logger))
+	registry.MustRegister(collector.NewPeerCollector(client, logger))
+	registry.MustRegister(collector.NewRpcCollector(client, logger))
+
+	gatherers := prometheus.Gatherers{registry}
+	if !*disableExporterMetrics {
+		gatherers = append(gatherers, prometheus.DefaultGatherer)
+	}
+
 	// Setup HTTP server
 	server := &http.Server{
 		Addr:    *listenAddress,
@@ -104,7 +96,7 @@ func main() {
 	}
 
 	// Setup routes
-	http.Handle(*metricsPath, metricsHandler(client))
+	http.Handle(*metricsPath, promhttp.HandlerFor(gatherers, promhttp.HandlerOpts{}))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<head><title>Bitcoin Daemon Exporter</title></head>
                         <body><h1>Bitcoind Exporter</h1>
