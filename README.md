@@ -56,6 +56,9 @@ To run it:
 | bitcoind_peer_average_ping_by_connection_seconds | Average ping time by connection type in seconds. | connection_type |
 | bitcoind_peer_min_ping_seconds | Minimum ping time across all peers in seconds. | |
 | bitcoind_peer_max_ping_seconds | Maximum ping time across all peers in seconds. | |
+| bitcoind_rpc_active_calls | Number of active RPC calls currently being processed. | |
+| bitcoind_rpc_calls_total | Total number of RPC calls made. | |
+| bitcoind_rpc_calls_total | Total number of RPC calls by command. | command |
 | bitcoind_exporter_collect_error | Error occured during collection. | collector |
 | bitcoind_exporter_collector_duration_seconds | Collector time duration. | collector |
 
@@ -64,10 +67,11 @@ To run it:
 | Label | Description |
 | ----- | ----------- |
 | chain | Current network name as defined in BIP70 (main, test, regtest) |
-| collector | Internal name of the collector (mempool, network, blockchain, mining, utxo, memory, peer) |
+| collector | Internal name of the collector (mempool, network, blockchain, mining, utxo, memory, peer, rpc) |
 | connection_type | Type of peer connection (inbound, outbound, unknown) |
 | network | Network protocol of peer (ipv4, ipv6, onion, unknown) |
 | sync_status | Sync status of peer (synced, not_synced) |
+| command | RPC command name |
 
 ## Using Docker
 
