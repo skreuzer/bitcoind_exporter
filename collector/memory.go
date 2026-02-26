@@ -24,7 +24,7 @@ type memoryCollector struct {
 
 type memoryInfo struct {
 	TotalUsed int64            `json:"total"`
-	Locked    int64            `json:"locked"`
+	Locked    interface{}      `json:"locked"`
 	Used      map[string]int64 `json:"used"`
 }
 
@@ -94,7 +94,21 @@ func (c *memoryCollector) Collect(ch chan<- prometheus.Metric) {
 	}
 
 	ch <- prometheus.MustNewConstMetric(c.totalUsed, prometheus.GaugeValue, float64(getMemoryInfo.TotalUsed))
-	ch <- prometheus.MustNewConstMetric(c.locked, prometheus.GaugeValue, float64(getMemoryInfo.Locked))
+
+	// Handle locked field - it can be either an int64 (old format) or a map/object (new format)
+	var lockedValue float64
+	switch v := getMemoryInfo.Locked.(type) {
+	case float64:
+		lockedValue = v
+	case int64:
+		lockedValue = float64(v)
+	case map[string]interface{}:
+		// New format: extract "current" value from the object
+		if current, ok := v["current"].(float64); ok {
+			lockedValue = current
+		}
+	}
+	ch <- prometheus.MustNewConstMetric(c.locked, prometheus.GaugeValue, lockedValue)
 
 	for category, usage := range getMemoryInfo.Used {
 		ch <- prometheus.MustNewConstMetric(c.usedTotal, prometheus.GaugeValue, float64(usage), category)

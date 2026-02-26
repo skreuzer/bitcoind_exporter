@@ -15,11 +15,14 @@ To run it:
 
 ## Collectors
 
-All collectors are enabled by default. You can disable individual collectors using flags:
+Most collectors are enabled by default. The UTXO collector is disabled by default because it performs an expensive operation.
 
 ```bash
-# Disable the UTXO collector (expensive operation)
-./bitcoind_exporter --no-collector.utxo
+# Enable the UTXO collector (disabled by default)
+./bitcoind_exporter --collector.utxo
+
+# Disable a collector that's enabled by default
+./bitcoind_exporter --no-collector.blockstats
 
 # Disable multiple collectors
 ./bitcoind_exporter --no-collector.utxo --no-collector.rpc --no-collector.mining
@@ -27,20 +30,21 @@ All collectors are enabled by default. You can disable individual collectors usi
 
 ### Available Collectors
 
-| Collector | Flag | Description |
-| --------- | ---- | ----------- |
-| blockchain | `--collector.blockchain` | Blockchain info (blocks, headers, difficulty) |
-| network | `--collector.network` | Network connections and traffic |
-| mempool | `--collector.mempool` | Mempool size and transactions |
-| mining | `--collector.mining` | Mining info and hash rate |
-| utxo | `--collector.utxo` | UTXO set info (warning: expensive operation) |
-| memory | `--collector.memory` | Memory usage |
-| peer | `--collector.peer` | Connected peer statistics |
-| rpc | `--collector.rpc` | RPC call statistics |
-| version | `--collector.version` | Bitcoin Core version info |
-| uptime | `--collector.uptime` | Server uptime |
+| Collector | Flag | Default | Description |
+| --------- | ---- | ------- | ----------- |
+| blockchain | `--collector.blockchain` | ✓ | Blockchain info (blocks, headers, difficulty) |
+| blockstats | `--collector.blockstats` | ✓ | Statistics for the latest block (fees, transactions, UTXO changes) |
+| network | `--collector.network` | ✓ | Network connections and traffic |
+| mempool | `--collector.mempool` | ✓ | Mempool size and transactions |
+| mining | `--collector.mining` | ✓ | Mining info and hash rate |
+| utxo | `--collector.utxo` | ✗ | UTXO set info (warning: expensive operation) |
+| memory | `--collector.memory` | ✓ | Memory usage |
+| peer | `--collector.peer` | ✓ | Connected peer statistics |
+| rpc | `--collector.rpc` | ✓ | RPC call statistics |
+| version | `--collector.version` | ✓ | Bitcoin Core version info |
+| uptime | `--collector.uptime` | ✓ | Server uptime |
 
-**Note:** The UTXO collector calls `gettxoutsetinfo` which can take several minutes to complete on a full node. Consider disabling it with `--no-collector.utxo` if scrape timeouts are an issue.
+**Note:** The UTXO collector calls `gettxoutsetinfo` which can take several minutes to complete on a full node. It is disabled by default for this reason.
 
 ## Exported Metrics
 
@@ -53,6 +57,14 @@ All collectors are enabled by default. You can disable individual collectors usi
 | bitcoind_blockchain_initial_download | Estimate of whether this node is in initial block download mode. | chain |
 | bitcoind_blockchain_verification_progress | Estimate of verification progress [0..1]. | chain |
 | bitcoind_blockchain_pruned | Indicates if the node is pruned. | chain |
+| bitcoind_blockstats_utxo_increase | Net increase in UTXOs in the latest block. | |
+| bitcoind_blockstats_utxo_size_increase_bytes | Net increase in UTXO size in the latest block. | |
+| bitcoind_blockstats_total_fee_satoshis | Total transaction fees in the latest block. | |
+| bitcoind_blockstats_total_out_satoshis | Total output value in the latest block. | |
+| bitcoind_blockstats_total_in_satoshis | Total input value in the latest block. | |
+| bitcoind_blockstats_total_subsidy_satoshis | Block subsidy in the latest block. | |
+| bitcoind_blockstats_transactions | Number of transactions in the latest block. | |
+| bitcoind_blockstats_height | Height of the latest block. | |
 | bitcoind_network_connections_count | Number of connections to other nodes. | |
 | bitcoind_network_receive_bytes_total | Total bytes received. | |
 | bitcoind_network_sent_bytes_total | Total bytes sent. | |
@@ -98,7 +110,7 @@ All collectors are enabled by default. You can disable individual collectors usi
 | Label | Description |
 | ----- | ----------- |
 | chain | Current network name as defined in BIP70 (main, test, regtest) |
-| collector | Internal name of the collector (mempool, network, blockchain, mining, utxo, memory, peer, rpc, version, uptime) |
+| collector | Internal name of the collector (blockstats, mempool, network, blockchain, mining, utxo, memory, peer, rpc, version, uptime) |
 | connection_type | Type of peer connection (inbound, outbound, unknown) |
 | network | Network protocol of peer (ipv4, ipv6, onion, unknown) |
 | sync_status | Sync status of peer (synced, not_synced) |

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/btcsuite/btcd/rpcclient"
@@ -62,52 +63,57 @@ var (
 
 	collectorBlockchain = kingpin.Flag(
 		"collector.blockchain",
-		"Enable the blockchain collector",
+		"Enable the blockchain collector (default: true)",
 	).Default("true").Bool()
 
 	collectorNetwork = kingpin.Flag(
 		"collector.network",
-		"Enable the network collector",
+		"Enable the network collector (default: true)",
 	).Default("true").Bool()
 
 	collectorMempool = kingpin.Flag(
 		"collector.mempool",
-		"Enable the mempool collector",
+		"Enable the mempool collector (default: true)",
 	).Default("true").Bool()
 
 	collectorMining = kingpin.Flag(
 		"collector.mining",
-		"Enable the mining collector",
+		"Enable the mining collector (default: true)",
 	).Default("true").Bool()
 
 	collectorUtxo = kingpin.Flag(
 		"collector.utxo",
-		"Enable the UTXO collector (warning: expensive operation)",
-	).Default("true").Bool()
+		"Enable the UTXO collector (default: false, warning: expensive operation)",
+	).Default("false").Bool()
 
 	collectorMemory = kingpin.Flag(
 		"collector.memory",
-		"Enable the memory collector",
+		"Enable the memory collector (default: true)",
 	).Default("true").Bool()
 
 	collectorPeer = kingpin.Flag(
 		"collector.peer",
-		"Enable the peer collector",
+		"Enable the peer collector (default: true)",
 	).Default("true").Bool()
 
 	collectorRpc = kingpin.Flag(
 		"collector.rpc",
-		"Enable the RPC collector",
+		"Enable the RPC collector (default: true)",
 	).Default("true").Bool()
 
 	collectorVersion = kingpin.Flag(
 		"collector.version",
-		"Enable the version collector",
+		"Enable the version collector (default: true)",
 	).Default("true").Bool()
 
 	collectorUptime = kingpin.Flag(
 		"collector.uptime",
-		"Enable the uptime collector",
+		"Enable the uptime collector (default: true)",
+	).Default("true").Bool()
+
+	collectorBlockStats = kingpin.Flag(
+		"collector.blockstats",
+		"Enable the blockstats collector (default: true)",
 	).Default("true").Bool()
 )
 
@@ -118,6 +124,43 @@ func main() {
 
 	level.Info(logger).Log("msg", "Starting bitcoind_exporter", "version", version.Info())
 	level.Info(logger).Log("msg", "Build context", "build_context", version.BuildContext())
+
+	// Log enabled collectors
+	var enabledCollectors []string
+	if *collectorBlockchain {
+		enabledCollectors = append(enabledCollectors, "blockchain")
+	}
+	if *collectorNetwork {
+		enabledCollectors = append(enabledCollectors, "network")
+	}
+	if *collectorMempool {
+		enabledCollectors = append(enabledCollectors, "mempool")
+	}
+	if *collectorMining {
+		enabledCollectors = append(enabledCollectors, "mining")
+	}
+	if *collectorUtxo {
+		enabledCollectors = append(enabledCollectors, "utxo")
+	}
+	if *collectorMemory {
+		enabledCollectors = append(enabledCollectors, "memory")
+	}
+	if *collectorPeer {
+		enabledCollectors = append(enabledCollectors, "peer")
+	}
+	if *collectorRpc {
+		enabledCollectors = append(enabledCollectors, "rpc")
+	}
+	if *collectorVersion {
+		enabledCollectors = append(enabledCollectors, "version")
+	}
+	if *collectorUptime {
+		enabledCollectors = append(enabledCollectors, "uptime")
+	}
+	if *collectorBlockStats {
+		enabledCollectors = append(enabledCollectors, "blockstats")
+	}
+	level.Info(logger).Log("msg", "Enabled collectors", "collectors", strings.Join(enabledCollectors, ", "))
 
 	rpcClientConfig := &rpcclient.ConnConfig{
 		Host:         *rpcServer,
@@ -177,6 +220,9 @@ func main() {
 	}
 	if *collectorUptime {
 		registry.MustRegister(collector.NewUptimeCollector(client, logger))
+	}
+	if *collectorBlockStats {
+		registry.MustRegister(collector.NewBlockStatsCollector(client, logger))
 	}
 
 	gatherers := prometheus.Gatherers{registry}

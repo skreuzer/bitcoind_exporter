@@ -41,7 +41,7 @@ func NewRpcCollector(rpcClient *rpcclient.Client, logger log.Logger) *rpcCollect
 			"Number of active RPC calls currently being processed",
 			nil, nil),
 		totalCalls: prometheus.NewDesc(
-			prometheus.BuildFQName(namespace, "rpc", "calls_total"),
+			prometheus.BuildFQName(namespace, "rpc", "all_calls_total"),
 			"Total number of RPC calls made",
 			nil, nil),
 		totalCallsByCmd: prometheus.NewDesc(
