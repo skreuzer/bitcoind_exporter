@@ -16,3 +16,9 @@
 
 # IDE settings
 .vscode/
+
+# Compiled binary
+bitcoind_exporter
+
+# Python cache
+.ruff_cache/
