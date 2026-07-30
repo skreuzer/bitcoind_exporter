@@ -49,7 +49,7 @@ var (
 	rpcTls = kingpin.Flag(
 		"bitcoind.rpc-tls",
 		"Enable TLS for RPC connections",
-	).Default("false").Bool()
+	).OverrideDefaultFromEnvar("BITCOIND_RPC_TLS").Default("false").Bool()
 
 	rpcCaCert = kingpin.Flag(
 		"bitcoind.rpc-ca-cert",
