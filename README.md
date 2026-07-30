@@ -1,7 +1,6 @@
 # Bitcoin Daemon Exporter
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/skreuzer/bitcoind_exporter.svg?maxAge=604800)](https://hub.docker.com/repository/docker/skreuzer/bitcoind_exporter)
-[![Go Report Card](https://goreportcard.com/badge/github.com/skreuzer/bitcoind_exporter)](https://goreportcard.com/report/github.com/skreuzer/bitcoind_exporter)
 
 Export statistics from bitcoind to [Prometheus](https://prometheus.io).
 
@@ -98,7 +97,7 @@ Most collectors are enabled by default. The UTXO collector is disabled by defaul
 | bitcoind_peer_min_ping_seconds | Minimum ping time across all peers in seconds. | |
 | bitcoind_peer_max_ping_seconds | Maximum ping time across all peers in seconds. | |
 | bitcoind_rpc_active_calls | Number of active RPC calls currently being processed. | |
-| bitcoind_rpc_calls_total | Total number of RPC calls made. | |
+| bitcoind_rpc_all_calls_total | Total number of RPC calls made. | |
 | bitcoind_rpc_calls_total | Total number of RPC calls by command. | command |
 | bitcoind_version_info | Bitcoin Core version information (always 1). | version, subversion, protocol_version |
 | bitcoind_uptime_seconds | The number of seconds that the Bitcoin server has been running. | |
